@@ -6,8 +6,9 @@ Set Width 1200
 Set Height 700
 
 Type "mqr"
+Sleep 200ms
 Enter
-Sleep 800ms
+Sleep 1.8s
 
 Type@200ms "Hello Gopher!"
 Sleep 600ms
@@ -22,7 +23,13 @@ Right
 Sleep 200ms
 
 Space
-Sleep 2.4s
+Sleep 2.2s
+
+Left
+Sleep 400ms
+
+Space
+Sleep 1.8s
 
 Enter
 Sleep 1s
