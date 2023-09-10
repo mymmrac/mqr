@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/skip2/go-qrcode"
 	"github.com/urfave/cli/v2"
@@ -13,13 +14,13 @@ func runCLI(app *cli.Context, data string) error {
 		return err
 	}
 
-	var qrCodeData string
+	var output string
 	if app.Bool("big") {
-		qrCodeData = code.ToString(app.Bool("inverted"))
+		output = code.ToString(app.Bool("inverted"))
 	} else {
-		qrCodeData = code.ToSmallString(app.Bool("inverted"))
+		output = code.ToSmallString(app.Bool("inverted"))
 	}
 
-	fmt.Println(qrCodeData)
+	fmt.Println("\n " + strings.ReplaceAll(output, "\n", "\n "))
 	return nil
 }

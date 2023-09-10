@@ -198,7 +198,7 @@ func (m *model) View() string {
 		if m.output == "" {
 			return "Bye!\n"
 		}
-		return m.output + "\n"
+		return "\n " + strings.ReplaceAll(m.output, "\n", "\n ") + "\n"
 	}
 
 	s := strings.Builder{}
