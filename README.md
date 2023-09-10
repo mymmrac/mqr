@@ -32,7 +32,7 @@ Keybindings
 
 - `Up` / `Down` - move focus
 - `Space` - select setting
-- `Esq` - cleat input or exit
+- `Esq` - clear input or exit
 - `Enter` - print result and exit
 
 ## :lock: License
