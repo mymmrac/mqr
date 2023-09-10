@@ -33,8 +33,9 @@ func main() {
 		Version:   versionInfo(),
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
-				Name:  "debug",
-				Usage: "enable debug mode",
+				Name:   "debug",
+				Usage:  "enable debug mode",
+				Hidden: true,
 				Action: func(_ *cli.Context, debug bool) error {
 					if debug {
 						log.SetLevel(log.DebugLevel)

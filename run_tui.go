@@ -109,6 +109,7 @@ func (m *model) Update(untypedMsg tea.Msg) (tea.Model, tea.Cmd) {
 		switch {
 		case key.Matches(msg, keys.ForceQuit):
 			m.exit = true
+			m.output = ""
 			return m, nil
 		case key.Matches(msg, keys.Quit):
 			if m.input.Value() == "" {
