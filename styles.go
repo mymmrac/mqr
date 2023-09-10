@@ -14,12 +14,15 @@ var (
 		"██║ ╚═╝ ██║╚██████╔╝██║  ██║" + "\n" +
 		"╚═╝     ╚═╝ ╚══▀▀═╝ ╚═╝  ╚═╝" + "\n"
 
+	logoWidth  = lipgloss.Width(logo)
+	logoHeight = lipgloss.Height(logo)
+
 	logoStyle = lipgloss.NewStyle().
 			Padding(1).
 			PaddingBottom(0)
 
 	inputStyle = lipgloss.NewStyle().
-			Height(lipgloss.Height(logo)+1).
+			Height(logoHeight+1).
 			BorderStyle(lipgloss.NormalBorder()).
 			BorderLeft(true).Padding(0, 1)
 

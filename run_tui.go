@@ -1,6 +1,7 @@
 package main
 
 import (
+	"slices"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -20,9 +21,15 @@ func runTUI(app *cli.Context) error {
 }
 
 type model struct {
-	input textinput.Model
+	input              textinput.Model
+	sizeInput          *RadioButtonGroup
+	invertedInput      *RadioButtonGroup
+	recoveryLevelInput *RadioButtonGroup
 
-	output string
+	big           bool
+	inverted      bool
+	recoveryLevel qrcode.RecoveryLevel
+	output        string
 
 	err error
 
@@ -35,15 +42,51 @@ func newModel() *model {
 	input := textinput.New()
 	input.Placeholder = "..."
 	input.Prompt = "Data: "
-	input.Focus()
 
-	return &model{
-		input: input,
+	m := &model{
+		input:         input,
+		recoveryLevel: qrcode.Medium,
 	}
+
+	m.sizeInput = NewRadioButtonGroup("Size",
+		NewRadioButton("small", func() {
+			m.big = false
+		}),
+		NewRadioButton("big", func() {
+			m.big = true
+		}),
+	)
+
+	m.invertedInput = NewRadioButtonGroup("Color",
+		NewRadioButton("regular", func() {
+			m.inverted = false
+		}),
+		NewRadioButton("inverted", func() {
+			m.inverted = true
+		}),
+	)
+
+	m.recoveryLevelInput = NewRadioButtonGroup("Recovery level",
+		NewRadioButton("low", func() {
+			m.recoveryLevel = qrcode.Low
+		}),
+		NewRadioButton("medium", func() {
+			m.recoveryLevel = qrcode.Medium
+		}),
+		NewRadioButton("high", func() {
+			m.recoveryLevel = qrcode.High
+		}),
+		NewRadioButton("highest", func() {
+			m.recoveryLevel = qrcode.Highest
+		}),
+	)
+	m.recoveryLevelInput.Select(1)
+
+	return m
 }
 
 func (m *model) Init() tea.Cmd {
-	return m.input.Cursor.BlinkCmd()
+	return m.input.Focus()
 }
 
 func (m *model) Update(untypedMsg tea.Msg) (tea.Model, tea.Cmd) {
@@ -51,10 +94,13 @@ func (m *model) Update(untypedMsg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	}
 
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
 	keyUpdate := false
 	switch msg := untypedMsg.(type) {
 	case tea.KeyMsg:
-		if msg.Type != tea.KeyLeft && msg.Type != tea.KeyRight {
+		if !slices.Contains([]tea.KeyType{tea.KeyRight, tea.KeyLeft, tea.KeyUp, tea.KeyDown}, msg.Type) {
 			keyUpdate = true
 		}
 
@@ -73,14 +119,49 @@ func (m *model) Update(untypedMsg tea.Msg) (tea.Model, tea.Cmd) {
 				m.exit = true
 				return m, nil
 			}
+		case msg.Type == tea.KeyUp:
+			switch {
+			case m.sizeInput.Focused():
+				m.sizeInput.Blur()
+				cmds = append(cmds, m.input.Focus())
+			case m.invertedInput.Focused():
+				m.invertedInput.Blur()
+				cmds = append(cmds, m.sizeInput.Focus())
+			case m.recoveryLevelInput.Focused():
+				m.recoveryLevelInput.Blur()
+				cmds = append(cmds, m.invertedInput.Focus())
+			}
+		case msg.Type == tea.KeyDown:
+			switch {
+			case m.input.Focused():
+				m.input.Blur()
+				cmds = append(cmds, m.sizeInput.Focus())
+			case m.sizeInput.Focused():
+				m.sizeInput.Blur()
+				cmds = append(cmds, m.invertedInput.Focus())
+			case m.invertedInput.Focused():
+				m.invertedInput.Blur()
+				cmds = append(cmds, m.recoveryLevelInput.Focus())
+			}
 		}
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
+
+		m.input.Width = m.width - logoWidth - 14
 	}
 
-	var inputCmd tea.Cmd
-	m.input, inputCmd = m.input.Update(untypedMsg)
+	m.input, cmd = m.input.Update(untypedMsg)
+	cmds = append(cmds, cmd)
+
+	m.sizeInput, cmd = m.sizeInput.Update(untypedMsg)
+	cmds = append(cmds, cmd)
+
+	m.invertedInput, cmd = m.invertedInput.Update(untypedMsg)
+	cmds = append(cmds, cmd)
+
+	m.recoveryLevelInput, cmd = m.recoveryLevelInput.Update(untypedMsg)
+	cmds = append(cmds, cmd)
 
 	if keyUpdate {
 		data := m.input.Value()
@@ -88,18 +169,23 @@ func (m *model) Update(untypedMsg tea.Msg) (tea.Model, tea.Cmd) {
 			m.err = nil
 			m.output = ""
 		} else {
-			code, err := qrCodeFromData(m.input.Value(), 0, qrcode.Medium)
+			code, err := qrCodeFromData(m.input.Value(), 0, m.recoveryLevel)
 			if err != nil {
 				m.err = err
 				m.output = ""
 			} else {
 				m.err = nil
-				m.output = code.ToSmallString(false)
+
+				if m.big {
+					m.output = code.ToString(m.inverted)
+				} else {
+					m.output = code.ToSmallString(m.inverted)
+				}
 			}
 		}
 	}
 
-	return m, inputCmd
+	return m, tea.Batch(cmds...)
 }
 
 func (m *model) View() string {
@@ -128,7 +214,16 @@ func (m *model) View() string {
 	s.WriteString("\n")
 
 	inputBox := lipgloss.JoinHorizontal(lipgloss.Top,
-		logoStyle.Render(logo), inputStyle.Render(m.input.View()),
+		logoStyle.Render(logo), inputStyle.Render(lipgloss.JoinVertical(
+			lipgloss.Top,
+			m.input.View(),
+			"",
+			m.sizeInput.View(),
+			"",
+			m.invertedInput.View(),
+			"",
+			m.recoveryLevelInput.View(),
+		)),
 	)
 	s.WriteString(mainBorder.Width(m.width - 2).Render(inputBox))
 
