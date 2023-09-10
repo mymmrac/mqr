@@ -2,7 +2,7 @@
 
 Generate QR codes using terminal
 
-<img src="docs/demo.gif" alt="Demo example" width="600px">
+<img src="docs/demo.gif" alt="mQR demo example">
 
 ## :gear: Install
 
