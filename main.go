@@ -28,7 +28,7 @@ func init() {
 func main() {
 	app := &cli.App{
 		Name:      "mqr",
-		Usage:     "generate and store QR codes in terminal",
+		Usage:     "generate QR codes in terminal",
 		ArgsUsage: "[data-to-encode]",
 		Version:   versionInfo(),
 		Flags: []cli.Flag{
@@ -67,6 +67,12 @@ func main() {
 				Usage:   "print with inverted colors",
 				Value:   false,
 				Aliases: []string{"i"},
+			},
+			&cli.BoolFlag{
+				Name:    "tui",
+				Usage:   "force TUI",
+				Value:   false,
+				Aliases: []string{"t"},
 			},
 		},
 		EnableBashCompletion: true,

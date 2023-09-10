@@ -12,8 +12,8 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-func runTUI(app *cli.Context) error {
-	program := tea.NewProgram(newModel(), tea.WithContext(app.Context))
+func runTUI(app *cli.Context, data string) error {
+	program := tea.NewProgram(newModel(data), tea.WithContext(app.Context))
 	if _, err := program.Run(); err != nil {
 		return err
 	}
@@ -35,17 +35,20 @@ type model struct {
 
 	width, height int
 
-	exit bool
+	exit         bool
+	updateNeeded bool
 }
 
-func newModel() *model {
+func newModel(data string) *model {
 	input := textinput.New()
 	input.Placeholder = "..."
 	input.Prompt = "Data: "
+	input.SetValue(data)
 
 	m := &model{
 		input:         input,
 		recoveryLevel: qrcode.Medium,
+		updateNeeded:  true,
 	}
 
 	m.sizeInput = NewRadioButtonGroup("Size",
@@ -97,11 +100,10 @@ func (m *model) Update(untypedMsg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
 
-	keyUpdate := false
 	switch msg := untypedMsg.(type) {
 	case tea.KeyMsg:
 		if !slices.Contains([]tea.KeyType{tea.KeyRight, tea.KeyLeft, tea.KeyUp, tea.KeyDown}, msg.Type) {
-			keyUpdate = true
+			m.updateNeeded = true
 		}
 
 		switch {
@@ -163,7 +165,7 @@ func (m *model) Update(untypedMsg tea.Msg) (tea.Model, tea.Cmd) {
 	m.recoveryLevelInput, cmd = m.recoveryLevelInput.Update(untypedMsg)
 	cmds = append(cmds, cmd)
 
-	if keyUpdate {
+	if m.updateNeeded {
 		data := m.input.Value()
 		if data == "" {
 			m.err = nil
@@ -183,6 +185,8 @@ func (m *model) Update(untypedMsg tea.Msg) (tea.Model, tea.Cmd) {
 				}
 			}
 		}
+
+		m.updateNeeded = false
 	}
 
 	return m, tea.Batch(cmds...)

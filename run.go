@@ -36,8 +36,8 @@ func run(app *cli.Context) error {
 		data = args.First()
 	}
 
-	if data == "" {
-		return runTUI(app)
+	if data == "" || app.Bool("tui") {
+		return runTUI(app, data)
 	} else {
 		return runCLI(app, data)
 	}
