@@ -28,6 +28,13 @@ mqr
 
 > Will launch TUI where you can enter (or paste) your data
 
+Keybindings
+
+- `Up` / `Down` - move focus
+- `Space` - select setting
+- `Esq` - cleat input or exit
+- `Enter` - print result and exit
+
 ## :lock: License
 
 mQR is distributed under [MIT license](LICENSE)
