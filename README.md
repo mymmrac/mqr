@@ -1,6 +1,8 @@
 # :white_square_button: mQR • My QR Codes in Terminal
 
-Generate and store your QR codes using terminal
+Generate QR codes using terminal
+
+<img src="docs/demo.gif" alt="Demo example" width="600px">
 
 ## :gear: Install
 
@@ -10,7 +12,21 @@ go install github.com/mymmrac/mqr@latest
 
 ## :zap: Usage
 
-TBD
+As CLI
+
+```shell
+mqr "Hello Gopher!"
+```
+
+> Will print QR code containing data `Hello Gopher!`
+
+As TUI
+
+```shell
+mqr
+```
+
+> Will launch TUI where you can enter (or paste) your data
 
 ## :lock: License
 
